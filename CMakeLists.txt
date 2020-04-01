@@ -12,7 +12,9 @@ set(DELTASCRIPT_SOURCES
     DeltaScript/Engine.cpp
 
     DeltaScript/Compiler/Parser.cpp
-    DeltaScript/Compiler/Lexer.cpp
+
+    DeltaScript/Lexer.cpp
+    DeltaScript/Util.cpp
 
     DeltaScript/Exception/DeltaScriptException.cpp
 )
