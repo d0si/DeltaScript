@@ -1,0 +1,8 @@
+#ifndef DELTASCRIPT_DELTASCRIPT_H_
+#define DELTASCRIPT_DELTASCRIPT_H_
+
+namespace DeltaScript {
+
+}
+
+#endif  // DELTASCRIPT_DELTASCRIPT_H_
