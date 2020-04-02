@@ -8,15 +8,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(DELTASCRIPT_SOURCES
-    DeltaScript/Context.cpp
-    DeltaScript/Engine.cpp
-
-    DeltaScript/Compiler/Parser.cpp
-
     DeltaScript/Lexer.cpp
+    DeltaScript/Token.cpp
     DeltaScript/Util.cpp
-
-    DeltaScript/Exception/DeltaScriptException.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED
