@@ -75,6 +75,19 @@ namespace DeltaScript {
         ++c_source_position_;
     }
 
+    void Lexer::get_previous_char() {
+        n_char = c_char;
+
+        --c_source_position_;
+
+        if (c_source_position_ - 1 < source_end_) {
+            c_char = source_[c_source_position_ - 1];
+        }
+        else {
+            c_char = 0;
+        }
+    }
+
     void Lexer::parse_next_token() {
         c_token_kind = TokenKind::EOS;
         c_token_value = "";
@@ -425,7 +438,20 @@ namespace DeltaScript {
             break;
         case '.':
             c_token_kind = TokenKind::PERIOD_P;
-            break; // Check for ellipsis (...)
+
+            if (c_char == '.') {
+                get_next_char();
+
+                if (c_char == '.') {
+                    c_token_kind = TokenKind::ELLIPSIS_P;
+                    get_next_char();
+                }
+                else {
+                    get_previous_char();
+                }
+            }
+
+            break;
         case ':':
             c_token_kind = TokenKind::COLON_P;
             break;
@@ -437,43 +463,181 @@ namespace DeltaScript {
             break;
         case '<':
             c_token_kind = TokenKind::LT_P;
-            break; // Check for <=, <<, <<=
+
+            if (c_char == '=') {
+                c_token_kind = TokenKind::LTE_P;
+                get_next_char();
+            }
+            else if (c_char == '<') {
+                c_token_kind = TokenKind::SHFT_L_P;
+                get_next_char();
+
+                if (c_char == '=') {
+                    c_token_kind = TokenKind::SHFT_L_EQ_P;
+                    get_next_char();
+                }
+            }
+
+            break;
         case '>':
             c_token_kind = TokenKind::GT_P;
-            break; // Check for >=, >>, >>>, >>=, >>>=
+
+            if (c_char == '=') {
+                c_token_kind = TokenKind::GTE_P;
+                get_next_char();
+            }
+            else if (c_char == '>') {
+                c_token_kind = TokenKind::SHFT_R_P;
+                get_next_char();
+
+                if (c_char == '>') {
+                    c_token_kind = TokenKind::SHFT_RR_P;
+                    get_next_char();
+
+                    if (c_char == '=') {
+                        c_token_kind = TokenKind::SHFT_RR_EQ_P;
+                        get_next_char();
+                    }
+                }
+                else if (c_char == '=') {
+                    c_token_kind = TokenKind::SHFT_R_EQ_P;
+                    get_next_char();
+                }
+            }
+
+            break;
         case '=':
             c_token_kind = TokenKind::ASSIGN_P;
-            break; // Check for ==, ===, =>
+
+            if (c_char == '=') {
+                c_token_kind = TokenKind::EQUAL_P;
+                get_next_char();
+
+                if (c_char == '=') {
+                    c_token_kind = TokenKind::STRICT_EQUAL_P;
+                    get_next_char;
+                }
+            }
+            else if (c_char == '>') {
+                c_token_kind = TokenKind::ARROW_P;
+                get_next_char();
+            }
+
+            break;
         case '!':
             c_token_kind = TokenKind::NOT_P;
-            break; // Check for !=, !==
+
+            if (c_char == '=') {
+                c_token_kind = TokenKind::NEQUAL_P;
+                get_next_char();
+
+                if (c_char == '=') {
+                    c_token_kind = TokenKind::STRICT_NEQUAL_P;
+                    get_next_char();
+                }
+            }
+
+            break;
         case '+':
-            c_token_kind = TokenKind::ADD_P;
-            break; // Check for ++, +=
+            c_token_kind = TokenKind::PLUS_P;
+
+            if (c_char == '+') {
+                c_token_kind = TokenKind::INCR_P;
+                get_next_char();
+            }
+            else if (c_char == '=') {
+                c_token_kind = TokenKind::PLUS_EQ_P;
+                get_next_char();
+            }
+
+            break;
         case '-':
-            c_token_kind = TokenKind::SUB_P;
-            break; // Check for --, -=
+            c_token_kind = TokenKind::MINUS_P;
+
+            if (c_char == '-') {
+                c_token_kind = TokenKind::DECR_P;
+                get_next_char();
+            }
+            else if (c_char == '=') {
+                c_token_kind = TokenKind::MINUS_EQ_P;
+                get_next_char();
+            }
+
+            break;
         case '*':
             c_token_kind = TokenKind::MUL_P;
-            break; // Check for *, *=, **=
+
+            if (c_char == '*') {
+                c_token_kind = TokenKind::EXP_P;
+                get_next_char();
+
+                if (c_char == '=') {
+                    c_token_kind = TokenKind::EXP_EQ_P;
+                    get_next_char();
+                }
+            }
+            else if (c_char == '=') {
+                c_token_kind = TokenKind::MUL_EQ_P;
+                get_next_char();
+            }
+
+            break;
         case '%':
             c_token_kind = TokenKind::MOD_P;
-            break; // Check for %=
+
+            if (c_char == '=') {
+                c_token_kind = TokenKind::MOD_EQ_P;
+                get_next_char();
+            }
+
+            break;
         case '&':
             c_token_kind = TokenKind::BIT_AND_P;
-            break; // Check for &&, &=
+
+            if (c_char == '&') {
+                c_token_kind = TokenKind::AND_P;
+                get_next_char();
+            } else if (c_char == '=') {
+                c_token_kind = TokenKind::BIT_AND_EQ_P;
+                get_next_char();
+            }
+
+            break;
         case '|':
             c_token_kind = TokenKind::BIT_OR_P;
-            break; // Check for ||, |=
+
+            if (c_char == '|') {
+                c_token_kind = TokenKind::OR_P;
+                get_next_char();
+            }
+            else if (c_char == '=') {
+                c_token_kind = TokenKind::BIT_OR_EQ_P;
+                get_next_char();
+            }
+
+            break;
         case '^':
             c_token_kind = TokenKind::BIT_XOR_P;
-            break; // Check for ^=
+
+            if (c_char == '=') {
+                c_token_kind = TokenKind::BIT_XOR_EQ_P;
+                get_next_char();
+            }
+
+            break;
         case '~':
             c_token_kind = TokenKind::BIT_NOT_P;
             break;
         case '?':
             c_token_kind = TokenKind::CONDITIONAL_P;
             break;
+        default:
+            std::ostringstream msg;
+            msg << "Unable to parse character '" << p_char
+                << "' at " << Token::get_position_info(source_, source_end_, c_token_start - 1)
+                << " into recognized operator sequence";
+
+            throw LexerException(msg.str());
         }
     }
 }
