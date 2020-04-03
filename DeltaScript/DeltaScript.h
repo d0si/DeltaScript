@@ -157,6 +157,7 @@ namespace DeltaScript {
         void process_number();
         void process_double_quote_string_literal();
         void process_single_quote_string_literal();
+        void process_punctuators();
 
         void check_for_reserved_keywords();
     };

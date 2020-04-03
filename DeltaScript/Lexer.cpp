@@ -108,9 +108,9 @@ namespace DeltaScript {
         else if (c_char == '\'') {
             process_single_quote_string_literal();
         }
-
-
-        // 558
+        else {
+            process_punctuators();
+        }
     }
 
     void Lexer::process_inline_comment() {
@@ -396,5 +396,84 @@ namespace DeltaScript {
         get_next_char();
 
         c_token_kind = TokenKind::STRING_L;
+    }
+
+    void Lexer::process_punctuators() {
+        char p_char = c_char;
+
+        if (c_char)
+            get_next_char();
+
+        switch (p_char) {
+        case '[':
+            c_token_kind = TokenKind::LBRACK_P;
+            break;
+        case '(':
+            c_token_kind = TokenKind::LPAREN_P;
+            break;
+        case '{':
+            c_token_kind = TokenKind::LBRACE_P;
+            break;
+        case ']':
+            c_token_kind = TokenKind::RBRACK_P;
+            break;
+        case ')':
+            c_token_kind = TokenKind::RPAREN_P;
+            break;
+        case '}':
+            c_token_kind = TokenKind::RBRACE_P;
+            break;
+        case '.':
+            c_token_kind = TokenKind::PERIOD_P;
+            break; // Check for ellipsis (...)
+        case ':':
+            c_token_kind = TokenKind::COLON_P;
+            break;
+        case ';':
+            c_token_kind = TokenKind::SEMICOLON_P;
+            break;
+        case ',':
+            c_token_kind = TokenKind::COMMA_P;
+            break;
+        case '<':
+            c_token_kind = TokenKind::LT_P;
+            break; // Check for <=, <<, <<=
+        case '>':
+            c_token_kind = TokenKind::GT_P;
+            break; // Check for >=, >>, >>>, >>=, >>>=
+        case '=':
+            c_token_kind = TokenKind::ASSIGN_P;
+            break; // Check for ==, ===, =>
+        case '!':
+            c_token_kind = TokenKind::NOT_P;
+            break; // Check for !=, !==
+        case '+':
+            c_token_kind = TokenKind::ADD_P;
+            break; // Check for ++, +=
+        case '-':
+            c_token_kind = TokenKind::SUB_P;
+            break; // Check for --, -=
+        case '*':
+            c_token_kind = TokenKind::MUL_P;
+            break; // Check for *, *=, **=
+        case '%':
+            c_token_kind = TokenKind::MOD_P;
+            break; // Check for %=
+        case '&':
+            c_token_kind = TokenKind::BIT_AND_P;
+            break; // Check for &&, &=
+        case '|':
+            c_token_kind = TokenKind::BIT_OR_P;
+            break; // Check for ||, |=
+        case '^':
+            c_token_kind = TokenKind::BIT_XOR_P;
+            break; // Check for ^=
+        case '~':
+            c_token_kind = TokenKind::BIT_NOT_P;
+            break;
+        case '?':
+            c_token_kind = TokenKind::CONDITIONAL_P;
+            break;
+        }
     }
 }
