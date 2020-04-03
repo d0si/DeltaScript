@@ -149,9 +149,9 @@ namespace DeltaScript {
             return "'==='";
         case TokenKind::STRICT_NEQUAL_P:
             return "'!=='";
-        case TokenKind::ADD_P:
+        case TokenKind::PLUS_P:
             return "'+'";
-        case TokenKind::SUB_P:
+        case TokenKind::MINUS_P:
             return "'-'";
         case TokenKind::MUL_P:
             return "'*'";
@@ -185,6 +185,30 @@ namespace DeltaScript {
             return "'!'";
         case TokenKind::CONDITIONAL_P:
             return "'?'";
+        case TokenKind::PLUS_EQ_P:
+            return "'+='";
+        case TokenKind::MINUS_EQ_P:
+            return "'-='";
+        case TokenKind::MUL_EQ_P:
+            return "'*='";
+        case TokenKind::MOD_EQ_P:
+            return "'%='";
+        case TokenKind::EXP_EQ_P:
+            return "'**='";
+        case TokenKind::SHFT_L_EQ_P:
+            return "'<<='";
+        case TokenKind::SHFT_R_EQ_P:
+            return "'>>='";
+        case TokenKind::SHFT_RR_EQ_P:
+            return "'>>>='";
+        case TokenKind::BIT_AND_EQ_P:
+            return "'&='";
+        case TokenKind::BIT_OR_EQ_P:
+            return "'|='";
+        case TokenKind::BIT_XOR_EQ_P:
+            return "'^='";
+        case TokenKind::ARROW_P:
+            return "'=>'";
         case TokenKind::NULL_L:
             return "null";
         case TokenKind::TRUE_L:

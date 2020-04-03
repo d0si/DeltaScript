@@ -68,8 +68,8 @@ namespace DeltaScript {
         NEQUAL_P,   // !=
         STRICT_EQUAL_P, // ===
         STRICT_NEQUAL_P, // !==
-        ADD_P,      // +
-        SUB_P,      // -
+        PLUS_P,     // +
+        MINUS_P,    // -
         MUL_P,      // *
         EXP_P,      // **
         MOD_P,      // %
@@ -86,18 +86,18 @@ namespace DeltaScript {
         OR_P,       // ||
         NOT_P,      // !
         CONDITIONAL_P, // ?
-        // +=
-        // -=
-        // *=
-        // %=
-        // **=
-        // <<=
-        // >>=
-        // >>>=
-        // &=
-        // |=
-        // ^=
-        // =>
+        PLUS_EQ_P,  // +=
+        MINUS_EQ_P, // -=
+        MUL_EQ_P,   // *=
+        MOD_EQ_P,   // %=
+        EXP_EQ_P,   // **=
+        SHFT_L_EQ_P, // <<=
+        SHFT_R_EQ_P, // >>=
+        SHFT_RR_EQ_P, // >>>=
+        BIT_AND_EQ_P, // &=
+        BIT_OR_EQ_P, // |=
+        BIT_XOR_EQ_P, // ^=
+        ARROW_P,    // =>
 
         // Literals, see https://www.ecma-international.org/ecma-262/10.0/index.html#sec-ecmascript-language-lexical-grammar-literals
         NULL_L,     // null
@@ -148,6 +148,7 @@ namespace DeltaScript {
         void reset();
         void expect_and_get_next(TokenKind expected_kind);
         void get_next_char();
+        void get_previous_char();
         void parse_next_token();
 
     private:
