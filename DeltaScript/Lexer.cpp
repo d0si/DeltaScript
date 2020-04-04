@@ -137,6 +137,17 @@ namespace DeltaScript {
         // Check what is the correct c_token_end value
         c_token_end = c_source_position_ - 1;//- 2;//- 3;//- 4;
     }
+    
+    Lexer* Lexer::get_sub_lex(int start_position) {
+        int last_char_index = p_token_end + 1;
+
+        if (last_char_index < source_end_) {
+            return new Lexer(this, start_position, last_char_index);
+        }
+        else {
+            return new Lexer(this, start_position, source_end_);
+        }
+    }
 
     void Lexer::process_inline_comment() {
         while (c_char && c_char != '\n')

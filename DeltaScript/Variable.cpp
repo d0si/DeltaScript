@@ -54,7 +54,7 @@ namespace DeltaScript {
         return str_data_;
     }
 
-    inline bool Variable::get_bool() {
+    bool Variable::get_bool() {
         return get_int() != 0;
     }
 

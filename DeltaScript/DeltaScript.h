@@ -149,8 +149,8 @@ namespace DeltaScript {
         char c_char = 0, n_char = 0;
     public:
         TokenKind c_token_kind = TokenKind::EOS;
-    private:
         int c_token_start = 0;
+    private:
         int c_token_end = 0;
         int p_token_end = 0;
         std::string c_token_value;
@@ -168,6 +168,8 @@ namespace DeltaScript {
         void get_next_char();
         void get_previous_char();
         void parse_next_token();
+
+        Lexer* get_sub_lex(int start_position);
 
     private:
         void process_inline_comment();
