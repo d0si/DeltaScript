@@ -8,8 +8,11 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(DELTASCRIPT_SOURCES
+    DeltaScript/Context.cpp
     DeltaScript/Lexer.cpp
     DeltaScript/Token.cpp
+    DeltaScript/Variable.cpp
+    DeltaScript/VariableReference.cpp
     DeltaScript/Util.cpp
 )
 

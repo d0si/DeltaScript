@@ -2,7 +2,7 @@
 #include <sstream>
 
 namespace DeltaScript {
-    LexerException::LexerException(const std::string& message) : message(message) {
+    LexerException::LexerException(const std::string& message) : DeltaScriptException(message) {
 
     }
 
@@ -38,7 +38,7 @@ namespace DeltaScript {
 
         c_token_start = 0;
         c_token_end = 0;
-        token_last_end = 0;
+        p_token_end = 0;
 
         c_token_kind = TokenKind::EOS;
         c_token_value = "";
@@ -47,6 +47,14 @@ namespace DeltaScript {
         get_next_char();
 
         parse_next_token();
+    }
+    
+    TokenKind Lexer::get_current_token() const {
+        return c_token_kind;
+    }
+
+    std::string Lexer::get_token_value() const {
+        return c_token_value;
     }
 
     void Lexer::expect_and_get_next(TokenKind expected_kind) {
@@ -80,7 +88,7 @@ namespace DeltaScript {
 
         --c_source_position_;
 
-        if (c_source_position_ - 1 < source_end_) {
+        if (c_source_position_ > 0 && (c_source_position_ - 1 < source_end_)) {
             c_char = source_[c_source_position_ - 1];
         }
         else {
@@ -124,6 +132,10 @@ namespace DeltaScript {
         else {
             process_punctuators();
         }
+
+        p_token_end = c_token_end;
+        // Check what is the correct c_token_end value
+        c_token_end = c_source_position_ - 1;//- 2;//- 3;//- 4;
     }
 
     void Lexer::process_inline_comment() {
@@ -515,7 +527,7 @@ namespace DeltaScript {
 
                 if (c_char == '=') {
                     c_token_kind = TokenKind::STRICT_EQUAL_P;
-                    get_next_char;
+                    get_next_char();
                 }
             }
             else if (c_char == '>') {
@@ -640,4 +652,4 @@ namespace DeltaScript {
             throw LexerException(msg.str());
         }
     }
-}
+}  // namespace DeltaScript

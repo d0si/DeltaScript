@@ -27,6 +27,14 @@ namespace DeltaScript {
             return (value >= '0' && value <= '9');
         }
 
+        bool is_number(const std::string& value) {
+            for (auto& c : value)
+                if (!is_digit(c))
+                    return false;
+
+            return true;
+        }
+
         bool is_hex(char value) {
             return (value >= '0' && value <= '9')
                 || (value >= 'a' && value <= 'f')

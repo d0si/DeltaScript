@@ -2,6 +2,10 @@
 #define DELTASCRIPT_DELTASCRIPT_H_
 
 #include <string>
+#include <vector>
+#include <unordered_map>
+
+#define CLEAN_VAR_REFERENCE(x) { VariableReference* v = x; if (v && !v->owner) delete v; }
 
 namespace DeltaScript {
     enum class TokenKind : unsigned int {
@@ -117,11 +121,21 @@ namespace DeltaScript {
         static std::string get_token_kind_as_string(TokenKind kind);
     };
 
-    class LexerException {
+    class DeltaScriptException {
     public:
-        LexerException(const std::string& message);
+        DeltaScriptException(const std::string& message) : message(message) {}
 
         std::string message;
+    };
+
+    class LexerException : public DeltaScriptException {
+    public:
+        LexerException(const std::string& message);
+    };
+
+    class VariableReferenceException : public DeltaScriptException {
+    public:
+        VariableReferenceException(const std::string& message);
     };
 
     class Lexer {
@@ -133,11 +147,12 @@ namespace DeltaScript {
         bool source_owner;
 
         char c_char = 0, n_char = 0;
+    public:
         TokenKind c_token_kind = TokenKind::EOS;
+    private:
         int c_token_start = 0;
         int c_token_end = 0;
-
-        int token_last_end;
+        int p_token_end = 0;
         std::string c_token_value;
 
     public:
@@ -145,6 +160,9 @@ namespace DeltaScript {
         Lexer(Lexer* parent, int source_start, int source_end);
         ~Lexer();
 
+        TokenKind get_current_token() const;
+        std::string get_token_value() const;
+        
         void reset();
         void expect_and_get_next(TokenKind expected_kind);
         void get_next_char();
@@ -163,6 +181,119 @@ namespace DeltaScript {
         void check_for_reserved_keywords();
     };
 
+    class VariableReference;
+
+    class Variable {
+        enum VariableFlags : unsigned int {
+            UNDEFINED = 0,
+            FUNCTION = 1,
+            OBJECT = 2,
+            ARRAY = 4,
+            DOUBLE = 8,
+            INTEGER = 16,
+            STRING = 32,
+            NULL_ = 64,
+            NATIVE = 128,
+            NUMERIC = NULL_ | DOUBLE | INTEGER,
+            VARTYPE = DOUBLE | INTEGER | STRING | FUNCTION | OBJECT | ARRAY | NULL_,
+        };
+
+    private:
+        std::string str_data_;
+        long int_data_;
+        double double_data_;
+        unsigned int flags_;
+        std::unordered_map<std::string, VariableReference*> children_;
+        VariableReference* first_child_;
+        VariableReference* last_child_;
+        int ref_count_;
+
+    public:
+        Variable();
+        Variable(const std::string& value);
+        Variable(const std::string& data, unsigned int var_flags);
+        Variable(int value);
+        Variable(double value);
+
+        const std::string& get_string();
+        bool get_bool();
+        int get_int();
+        double get_double();
+        void set_string(const std::string& value);
+        void set_int(int value);
+        void set_double(double value);
+        void set_undefined();
+        void set_as_array();
+
+        bool is_int() const;
+        bool is_double() const;
+        bool is_string() const;
+        bool is_numeric() const;
+        bool is_function() const;
+        bool is_object() const;
+        bool is_array() const;
+        bool is_native() const;
+        bool is_undefined() const;
+        bool is_null() const;
+        bool is_basic() const;
+
+        VariableReference* find_child(const std::string& child_name);
+        VariableReference* find_child_or_create(const std::string& child_name, unsigned int var_flags = VariableFlags::UNDEFINED);
+        VariableReference* find_child_or_create_by_path(const std::string& path);
+        VariableReference* add_child(const std::string& child_name, Variable* child = nullptr);
+        void remove_child(const std::string& child_name, Variable* child, bool throw_if_not_found = false);
+        void remove_reference(VariableReference* ref);
+        void remove_all_children();
+        Variable* get_array_val_at_index(int index);
+        void set_array_val_at_index(int index, Variable* value);
+        int get_array_size();
+        int get_children_count();
+
+        void copy_from(Variable* value);
+        void copy_simple_data_from(Variable* value);
+        Variable* deep_copy();
+
+        Variable* inc_ref();
+        void unref();
+        int get_ref_count();
+    };
+
+    class VariableReference {
+    public:
+        VariableReference();
+        VariableReference(Variable* var, const std::string& name = "");
+        VariableReference(const VariableReference& value);
+        ~VariableReference();
+
+        VariableReference* next_sibling;
+        VariableReference* prev_sibling;
+        Variable* var;
+        std::string name;
+        bool owner;
+
+        VariableReference* replace_with(Variable* new_value);
+        VariableReference* replace_with(VariableReference* new_value);
+    private:
+        void unreference(Variable* value);
+    };
+
+    class Context {
+    private:
+        Lexer* lex_;
+        Variable* root_;
+
+    public:
+        void execute(const std::string& script);
+        // VariableReference* evaluate(const std::string& script);
+        // std::string evaluate_as_string(const std::string& script);
+
+    private:
+        VariableReference* process_base_command(bool& can_execute);
+
+        void process_block(bool& can_execute);
+        void process_statement(bool& can_execute);
+    };
+
     namespace Util {
         bool is_white_space(char value);
         bool is_line_terminator(char value);
@@ -170,8 +301,9 @@ namespace DeltaScript {
 
         bool is_alpha(char value);
         bool is_digit(char value);
+        bool is_number(const std::string& value);
         bool is_hex(char value);
     }
-}
+}  // namespace DeltaScript
 
 #endif  // DELTASCRIPT_DELTASCRIPT_H_
