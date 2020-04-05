@@ -38,7 +38,7 @@ namespace DeltaScript {
         lex_ = old_lex;
         scopes_ = old_scopes;
     }
-    
+
     void Context::add_native_function(const std::string& function_definition, NativeCallback callback, void* data) {
         Lexer* old_lex = lex_;
         lex_ = new Lexer(function_definition);
@@ -58,14 +58,14 @@ namespace DeltaScript {
 
             function_base = ref->var;
             function_name = lex_->get_token_value();
-            
+
             lex_->expect_and_get_next(TokenKind::IDENTIFIER);
         }
 
         Variable* function_var = new Variable("", Variable::VariableFlags::FUNCTION | Variable::VariableFlags::NATIVE);
         function_var->set_native_callback(callback, data);
         parse_function_arguments(function_var);
-        
+
         delete lex_;
         lex_ = old_lex;
 
@@ -180,7 +180,7 @@ namespace DeltaScript {
             return function;
         }
     }
-    
+
     VariableReference* Context::process_factor(bool& can_execute) {
         if (lex_->c_token_kind == TokenKind::LPAREN_P) {
             lex_->parse_next_token();
@@ -265,6 +265,38 @@ namespace DeltaScript {
 
             return a;
         }
+        else if (lex_->c_token_kind == TokenKind::INTEGER_L || lex_->c_token_kind == TokenKind::FLOAT_L) {
+            Variable* a = new Variable(lex_->get_token_value(), lex_->c_token_kind == TokenKind::INTEGER_L ?
+                Variable::VariableFlags::INTEGER : Variable::VariableFlags::DOUBLE);
+            lex_->parse_next_token();
+
+            return new VariableReference(a);
+        }
+        else if (lex_->c_token_kind == TokenKind::STRING_L) {
+            Variable* a = new Variable(lex_->get_token_value(), Variable::VariableFlags::STRING);
+            lex_->parse_next_token();
+
+            return new VariableReference(a);
+        }
+        else if (lex_->c_token_kind == TokenKind::LBRACE_P) {
+            // TODO: Create object
+            return new VariableReference(new Variable());
+        }
+        else if (lex_->c_token_kind == TokenKind::LBRACK_P) {
+            // TODO: Create array
+            return new VariableReference(new Variable());
+        }
+        else if (lex_->c_token_kind == TokenKind::FUNCTION_K) {
+            VariableReference* func_ref = parse_function_definition();
+
+            if (func_ref->name != "")
+                throw DeltaScriptException("Functions not defined at statement-level are not meant to have a name");
+
+            return func_ref;
+        }
+
+        lex_->expect_and_get_next(TokenKind::EOS);
+        return nullptr;
     }
 
     VariableReference* Context::process_unary(bool& can_execute) {
@@ -815,7 +847,7 @@ namespace DeltaScript {
 
         lex_->expect_and_get_next(TokenKind::RPAREN_P);
     }
-    
+
     VariableReference* Context::find_var_in_scopes(const std::string& child_name) {
         for (int i = scopes_.size() - 1; i >= 0; --i) {
             VariableReference* ref = scopes_[i]->find_child(child_name);

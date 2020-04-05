@@ -1,5 +1,6 @@
 #include <DeltaScript/DeltaScript.h>
 #include <sstream>
+#include <iostream>
 
 namespace DeltaScript {
     VariableReferenceException::VariableReferenceException(const std::string& message) : DeltaScriptException(message) {
@@ -66,10 +67,10 @@ namespace DeltaScript {
     void VariableReference::unreference(Variable* value) {
         if (value->get_ref_count() <= 0) {
             std::stringstream msg;
-            msg << "Too many unrefs in variable '"
+            msg << "WARNING[DeltaScript]: Too many unrefs in variable '"
                 << name << "'. Stack may be corrupted.";
 
-            throw VariableReferenceException(msg.str());
+            std::cout << msg.str() << std::endl;
         }
         else {
             value->unref();

@@ -678,6 +678,9 @@ namespace DeltaScript {
         case '?':
             c_token_kind = TokenKind::CONDITIONAL_P;
             break;
+        case '\0':
+            c_token_kind = TokenKind::EOS;
+            break;
         default:
             std::ostringstream msg;
             msg << "Unable to parse character '" << p_char
