@@ -8,6 +8,7 @@ namespace DeltaScript {
         str_data_ = "";
         int_data_ = 0;
         double_data_ = 0;
+        execution_count_ = 0;
         flags_ = VariableFlags::UNDEFINED;
     }
 
@@ -338,6 +339,157 @@ namespace DeltaScript {
     int Variable::get_children_count() {
         return children_.size();
     }
+    
+    Variable* Variable::execute_math_operation(Variable* second, TokenKind operation) {
+        Variable* first = this;
+
+        if (operation == TokenKind::STRICT_EQUAL_P || operation == TokenKind::STRICT_NEQUAL_P) {
+            bool equal = (first->flags_ & VariableFlags::VARTYPE) == (second->flags_ & VariableFlags::VARTYPE);
+
+            if (equal) {
+                Variable* contents = first->execute_math_operation(second, TokenKind::EQUAL_P);
+
+                if (!contents->get_bool())
+                    equal = false;
+
+                if (!contents->ref_count_)
+                    delete contents;
+            }
+
+            if (operation == TokenKind::STRICT_EQUAL_P) {
+                return new Variable(equal);
+            }
+            else {
+                return new Variable(!equal);
+            }
+        }
+
+        if (first->is_undefined() && second->is_undefined()) {
+            switch (operation) {
+            case TokenKind::EQUAL_P:
+                return new Variable(true);
+            case TokenKind::NEQUAL_P:
+                return new Variable(false);
+            default:
+                return new Variable();
+            }
+        }
+        else if ((first->is_numeric() || first->is_undefined())
+            && (second->is_numeric() || second->is_undefined())) {
+            if (!first->is_double() && !second->is_double()) {
+                int first_i = first->get_int();
+                int second_i = second->get_int();
+
+                switch (operation) {
+                case TokenKind::PLUS_P:
+                    return new Variable(first_i + second_i);
+                case TokenKind::MINUS_P:
+                    return new Variable(first_i - second_i);
+                case TokenKind::MUL_P:
+                    return new Variable(first_i * second_i);
+                case TokenKind::DIV_P:
+                    return new Variable(first_i / second_i);
+                case TokenKind::BIT_AND_P:
+                    return new Variable(first_i & second_i);
+                case TokenKind::BIT_OR_P:
+                    return new Variable(first_i | second_i);
+                case TokenKind::BIT_XOR_P:
+                    return new Variable(first_i ^ second_i);
+                case TokenKind::MOD_P:
+                    return new Variable(first_i % second_i);
+                case TokenKind::EQUAL_P:
+                    return new Variable(first_i == second_i);
+                case TokenKind::NEQUAL_P:
+                    return new Variable(first_i != second_i);
+                case TokenKind::LT_P:
+                    return new Variable(first_i < second_i);
+                case TokenKind::LTE_P:
+                    return new Variable(first_i <= second_i);
+                case TokenKind::GT_P:
+                    return new Variable(first_i > second_i);
+                case TokenKind::GTE_P:
+                    return new Variable(first_i >= second_i);
+                default:
+                    throw DeltaScriptException("Operation " + Token::get_token_kind_as_string(operation) + " is not on the Int type");
+                }
+            }
+            else {
+                double first_d = first->get_double();
+                double second_d = second->get_double();
+
+                switch (operation) {
+                case TokenKind::PLUS_P:
+                    return new Variable(first_d + second_d);
+                case TokenKind::MINUS_P:
+                    return new Variable(first_d - second_d);
+                case TokenKind::MUL_P:
+                    return new Variable(first_d * second_d);
+                case TokenKind::DIV_P:
+                    return new Variable(first_d / second_d);
+                case TokenKind::EQUAL_P:
+                    return new Variable(first_d == second_d);
+                case TokenKind::NEQUAL_P:
+                    return new Variable(first_d != second_d);
+                case TokenKind::LT_P:
+                    return new Variable(first_d < second_d);
+                case TokenKind::LTE_P:
+                    return new Variable(first_d <= second_d);
+                case TokenKind::GT_P:
+                    return new Variable(first_d > second_d);
+                case TokenKind::GTE_P:
+                    return new Variable(first_d >= second_d);
+                default:
+                    throw DeltaScriptException("Operation " + Token::get_token_kind_as_string(operation) + " is not on the Int type");
+                }
+            }
+        }
+        else if (first->is_array()) {
+            switch (operation) {
+            case TokenKind::EQUAL_P:
+                return new Variable(first == second);
+            case TokenKind::NEQUAL_P:
+                return new Variable(first != second);
+            default:
+                throw DeltaScriptException("Operation " + Token::get_token_kind_as_string(operation) + " is not on the Array type");
+            }
+        }
+        else if (first->is_object()) {
+            switch (operation) {
+            case TokenKind::EQUAL_P:
+                return new Variable(first == second);
+            case TokenKind::NEQUAL_P:
+                return new Variable(first != second);
+            default:
+                throw DeltaScriptException("Operation " + Token::get_token_kind_as_string(operation) + " is not on the Object type");
+            }
+        }
+        else {
+            std::string first_s = first->get_string();
+            std::string second_s = second->get_string();
+
+            switch (operation) {
+            case TokenKind::PLUS_P:
+                return new Variable(first_s + second_s);
+            case TokenKind::EQUAL_P:
+                return new Variable(first_s == second_s);
+            case TokenKind::NEQUAL_P:
+                return new Variable(first_s != second_s);
+            case TokenKind::LT_P:
+                return new Variable(first_s == second_s);
+            case TokenKind::LTE_P:
+                return new Variable(first_s == second_s);
+            case TokenKind::GT_P:
+                return new Variable(first_s == second_s);
+            case TokenKind::GTE_P:
+                return new Variable(first_s == second_s);
+            default:
+                throw DeltaScriptException("Operation " + Token::get_token_kind_as_string(operation) + " is not on the String type");
+            }
+        }
+        
+        throw DeltaScriptException("Mathematical operation error. Could not apply any operation to requested values");
+        return nullptr;
+    }
 
     void Variable::copy_from(Variable* value) {
         if (value) {
@@ -409,5 +561,13 @@ namespace DeltaScript {
 
     int Variable::get_ref_count() {
         return ref_count_;
+    }
+
+    void Variable::increase_execution_count() {
+        ++execution_count_;
+    }
+
+    int Variable::get_execution_count() {
+        return execution_count_;
     }
 }  // namespace DeltaScript

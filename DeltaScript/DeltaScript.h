@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #define CLEAN_VAR_REFERENCE(x) { VariableReference* v = x; if (v && !v->owner) delete v; }
+#define CREATE_REFERENCE(ref, var) { if (!ref || ref->owner) ref = new VariableReference(var); else ref->replace_with(var); }
 
 namespace DeltaScript {
     enum class TokenKind : unsigned int {
@@ -45,6 +46,7 @@ namespace DeltaScript {
         THROW_K,    // throw
         TRY_K,      // try
         TYPEOF_K,   // typeof
+        UNDEFINED_K, // undefined
         VAR_K,      // var
         VOID_K,     // void
         WHILE_K,    // while
@@ -75,6 +77,7 @@ namespace DeltaScript {
         PLUS_P,     // +
         MINUS_P,    // -
         MUL_P,      // *
+        DIV_P,      // /
         EXP_P,      // **
         MOD_P,      // %
         INCR_P,     // ++
@@ -171,6 +174,8 @@ namespace DeltaScript {
 
         Lexer* get_sub_lex(int start_position);
 
+        std::string get_sub_string(int start_position);
+
     private:
         void process_inline_comment();
         void process_multiline_comment();
@@ -186,6 +191,7 @@ namespace DeltaScript {
     class VariableReference;
 
     class Variable {
+    public:
         enum VariableFlags : unsigned int {
             UNDEFINED = 0,
             FUNCTION = 1,
@@ -200,15 +206,17 @@ namespace DeltaScript {
             VARTYPE = DOUBLE | INTEGER | STRING | FUNCTION | OBJECT | ARRAY | NULL_,
         };
 
-    private:
+    protected:
         std::string str_data_;
         long int_data_;
         double double_data_;
         unsigned int flags_;
+    private:
         std::unordered_map<std::string, VariableReference*> children_;
         VariableReference* first_child_;
         VariableReference* last_child_;
         int ref_count_;
+        int execution_count_;
 
     public:
         Variable();
@@ -251,6 +259,8 @@ namespace DeltaScript {
         int get_array_size();
         int get_children_count();
 
+        Variable* execute_math_operation(Variable* second, TokenKind operation);
+
         void copy_from(Variable* value);
         void copy_simple_data_from(Variable* value);
         Variable* deep_copy();
@@ -258,6 +268,11 @@ namespace DeltaScript {
         Variable* inc_ref();
         void unref();
         int get_ref_count();
+
+        void increase_execution_count();
+        int get_execution_count();
+
+        friend class Context;
     };
 
     class VariableReference {
@@ -282,18 +297,37 @@ namespace DeltaScript {
     class Context {
     private:
         Lexer* lex_;
+        std::vector<Variable*> scopes_;
         Variable* root_;
 
     public:
+        Context();
+        ~Context();
+
         void execute(const std::string& script);
         // VariableReference* evaluate(const std::string& script);
         // std::string evaluate_as_string(const std::string& script);
 
     private:
-        VariableReference* process_base_command(bool& can_execute);
+        VariableReference* process_function_call(bool& can_execute, VariableReference* function, Variable* parent);
+        VariableReference* process_factor(bool& can_execute);
+        VariableReference* process_unary(bool& can_execute);
+        VariableReference* process_term(bool& can_execute);
+        VariableReference* process_expression(bool& can_execute);
+        VariableReference* process_shift(bool& can_execute);
+        VariableReference* process_condition(bool& can_execute);
+        VariableReference* process_logic(bool& can_execute);
+        VariableReference* process_ternary(bool& can_execute);
+        VariableReference* process_base(bool& can_execute);
 
         void process_block(bool& can_execute);
         void process_statement(bool& can_execute);
+
+        VariableReference* parse_function_definition();
+        void parse_function_arguments(Variable* function_variable);
+
+        VariableReference* find_var_in_scopes(const std::string& child_name);
+        VariableReference* find_var_in_parent_classes(Variable* object, const std::string& name);
     };
 
     namespace Util {

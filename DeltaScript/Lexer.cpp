@@ -149,6 +149,24 @@ namespace DeltaScript {
         }
     }
 
+    std::string Lexer::get_sub_string(int start_position) {
+        int last_char_index = p_token_end + 1;
+
+        if (last_char_index < source_end_) {
+            char old_char = source_[last_char_index];
+            source_[last_char_index] = 0;
+
+            std::string value = &source_[start_position];
+
+            source_[last_char_index] = old_char;
+
+            return value;
+        }
+        else {
+            return std::string(&source_[p_token_end]);
+        }
+    }
+
     void Lexer::process_inline_comment() {
         while (c_char && c_char != '\n')
             get_next_char();
@@ -315,6 +333,9 @@ namespace DeltaScript {
         }
         else if (c_token_value == "typeof") {
             c_token_kind = TokenKind::TYPEOF_K;
+        }
+        else if (c_token_value == "undefined") {
+            c_token_kind = TokenKind::UNDEFINED_K;
         }
         else if (c_token_value == "var") {
             c_token_kind = TokenKind::VAR_K;
@@ -604,6 +625,9 @@ namespace DeltaScript {
                 get_next_char();
             }
 
+            break;
+        case '/':
+            c_token_kind = TokenKind::DIV_P;
             break;
         case '%':
             c_token_kind = TokenKind::MOD_P;

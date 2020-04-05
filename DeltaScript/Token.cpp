@@ -99,6 +99,8 @@ namespace DeltaScript {
             return "try";
         case TokenKind::TYPEOF_K:
             return "typeof";
+        case TokenKind::UNDEFINED_K:
+            return "undefined";
         case TokenKind::VAR_K:
             return "var";
         case TokenKind::VOID_K:
@@ -155,6 +157,8 @@ namespace DeltaScript {
             return "'-'";
         case TokenKind::MUL_P:
             return "'*'";
+        case TokenKind::DIV_P:
+            return "'/'";
         case TokenKind::EXP_P:
             return "'**'";
         case TokenKind::MOD_P:
