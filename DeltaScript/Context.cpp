@@ -85,7 +85,11 @@ namespace DeltaScript {
             scopes_.push_back(function_root);
 
             if (function->var->is_native()) {
-                // TODO: Handle native functions
+                if (function->var->native_callback_ == nullptr)
+                    throw DeltaScriptException("Tried to execute native function without callback handle");
+
+                function->var->native_callback_(function_root, function->var->native_callback_data_);
+                function->var->increase_execution_count();
             }
             else {
                 Lexer* old_lex = lex_;

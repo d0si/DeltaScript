@@ -8,6 +8,8 @@ namespace DeltaScript {
         str_data_ = "";
         int_data_ = 0;
         double_data_ = 0;
+        native_callback_ = nullptr;
+        native_callback_data_ = nullptr;
         execution_count_ = 0;
         flags_ = VariableFlags::UNDEFINED;
     }
@@ -125,39 +127,39 @@ namespace DeltaScript {
     bool Variable::is_int() const {
         return (flags_ & VariableFlags::INTEGER) != 0;
     }
-    
+
     bool Variable::is_double() const {
         return (flags_ & VariableFlags::DOUBLE) != 0;
     }
-    
+
     bool Variable::is_string() const {
         return (flags_ & VariableFlags::STRING) != 0;
     }
-    
+
     bool Variable::is_numeric() const {
         return (flags_ & VariableFlags::NUMERIC) != 0;
     }
-    
+
     bool Variable::is_function() const {
         return (flags_ & VariableFlags::FUNCTION) != 0;
     }
-    
+
     bool Variable::is_object() const {
         return (flags_ & VariableFlags::OBJECT) != 0;
     }
-    
+
     bool Variable::is_array() const {
         return (flags_ & VariableFlags::ARRAY) != 0;
     }
-    
+
     bool Variable::is_native() const {
         return (flags_ & VariableFlags::NATIVE) != 0;
     }
-    
+
     bool Variable::is_undefined() const {
         return (flags_ & VariableFlags::VARTYPE) == VariableFlags::UNDEFINED;
     }
-    
+
     bool Variable::is_null() const {
         return (flags_ & VariableFlags::NULL_) != 0;
     }
@@ -201,7 +203,7 @@ namespace DeltaScript {
         return find_child_or_create(path.substr(0, p), VariableFlags::OBJECT)
             ->var->find_child_or_create_by_path(path.substr(p + 1));
     }
-    
+
     VariableReference* Variable::add_child(const std::string& child_name, Variable* child) {
         if (is_undefined())
             flags_ = VariableFlags::OBJECT;
@@ -339,7 +341,7 @@ namespace DeltaScript {
     int Variable::get_children_count() {
         return children_.size();
     }
-    
+
     Variable* Variable::execute_math_operation(Variable* second, TokenKind operation) {
         Variable* first = this;
 
@@ -486,7 +488,7 @@ namespace DeltaScript {
                 throw DeltaScriptException("Operation " + Token::get_token_kind_as_string(operation) + " is not on the String type");
             }
         }
-        
+
         throw DeltaScriptException("Mathematical operation error. Could not apply any operation to requested values");
         return nullptr;
     }
@@ -569,5 +571,10 @@ namespace DeltaScript {
 
     int Variable::get_execution_count() {
         return execution_count_;
+    }
+
+    void Variable::set_native_callback(NativeCallback callback, void* data) {
+        native_callback_ = callback;
+        native_callback_data_ = data;
     }
 }  // namespace DeltaScript

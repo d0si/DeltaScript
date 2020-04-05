@@ -189,6 +189,8 @@ namespace DeltaScript {
     };
 
     class VariableReference;
+    class Variable;
+    typedef void (*NativeCallback) (Variable* var, void* data);
 
     class Variable {
     public:
@@ -211,6 +213,8 @@ namespace DeltaScript {
         long int_data_;
         double double_data_;
         unsigned int flags_;
+        NativeCallback native_callback_;
+        void* native_callback_data_;
     private:
         std::unordered_map<std::string, VariableReference*> children_;
         VariableReference* first_child_;
@@ -271,6 +275,7 @@ namespace DeltaScript {
 
         void increase_execution_count();
         int get_execution_count();
+        void set_native_callback(NativeCallback callback, void* data);
 
         friend class Context;
     };
