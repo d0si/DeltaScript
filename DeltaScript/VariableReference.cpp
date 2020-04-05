@@ -19,7 +19,7 @@ namespace DeltaScript {
     VariableReference::VariableReference(Variable* var, const std::string& name)
         : next_sibling(nullptr),
         prev_sibling(nullptr),
-        var(var),
+        var(var->inc_ref()),
         owner(false),
         name(name) {
 
