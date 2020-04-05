@@ -496,7 +496,28 @@ namespace DeltaScript {
     }
 
     void Context::process_block(bool& can_execute) {
+        lex_->expect_and_get_next(TokenKind::LBRACE_P);
 
+        if (can_execute) {
+            while (lex_->c_token_kind != TokenKind::EOS && lex_->c_token_kind != TokenKind::RBRACE_P)
+                process_statement(can_execute);
+
+            lex_->expect_and_get_next(TokenKind::RBRACE_P);
+        }
+        else {
+            int braces = 1;
+
+            while (lex_->c_token_kind != TokenKind::EOS && braces > 0) {
+                if (lex_->c_token_kind == TokenKind::LBRACE_P) {
+                    ++braces;
+                }
+                else if (lex_->c_token_kind == TokenKind::RBRACE_P) {
+                    --braces;
+                }
+
+                lex_->parse_next_token();
+            }
+        }
     }
 
     void Context::process_statement(bool& can_execute) {
