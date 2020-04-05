@@ -38,6 +38,39 @@ namespace DeltaScript {
         lex_ = old_lex;
         scopes_ = old_scopes;
     }
+    
+    void Context::add_native_function(const std::string& function_definition, NativeCallback callback, void* data) {
+        Lexer* old_lex = lex_;
+        lex_ = new Lexer(function_definition);
+        Variable* function_base = root_;
+
+        lex_->expect_and_get_next(TokenKind::FUNCTION_K);
+        std::string function_name = lex_->get_token_value();
+        lex_->expect_and_get_next(TokenKind::IDENTIFIER);
+
+        while (lex_->c_token_kind == TokenKind::PERIOD_P) {
+            lex_->parse_next_token();
+
+            VariableReference* ref = function_base->find_child(function_name);
+
+            if (!ref)
+                ref = function_base->add_child(function_name, new Variable("", Variable::VariableFlags::OBJECT));
+
+            function_base = ref->var;
+            function_name = lex_->get_token_value();
+            
+            lex_->expect_and_get_next(TokenKind::IDENTIFIER);
+        }
+
+        Variable* function_var = new Variable("", Variable::VariableFlags::FUNCTION | Variable::VariableFlags::NATIVE);
+        function_var->set_native_callback(callback, data);
+        parse_function_arguments(function_var);
+        
+        delete lex_;
+        lex_ = old_lex;
+
+        function_base->add_child(function_name, function_var);
+    }
 
     VariableReference* Context::process_function_call(bool& can_execute, VariableReference* function, Variable* parent) {
         if (can_execute) {

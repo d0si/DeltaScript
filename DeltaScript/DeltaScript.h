@@ -313,6 +313,8 @@ namespace DeltaScript {
         // VariableReference* evaluate(const std::string& script);
         // std::string evaluate_as_string(const std::string& script);
 
+        void add_native_function(const std::string& function_definition, NativeCallback callback, void* data);
+
     private:
         VariableReference* process_function_call(bool& can_execute, VariableReference* function, Variable* parent);
         VariableReference* process_factor(bool& can_execute);
