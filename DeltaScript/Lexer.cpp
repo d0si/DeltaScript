@@ -100,8 +100,12 @@ namespace DeltaScript {
         c_token_kind = TokenKind::EOS;
         c_token_value = "";
 
-        while (c_char && Util::is_white_space(c_char))
+        while (c_char && (Util::is_white_space(c_char) || Util::is_line_terminator(c_char))) {
+            if (Util::is_line_terminator_crlf(c_char, n_char))
+                get_next_char();
+
             get_next_char();
+        }
 
         if (c_char == '/' && n_char == '/') {
             process_inline_comment();
