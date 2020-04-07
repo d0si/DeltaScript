@@ -1,5 +1,9 @@
 #include <DeltaScript/DeltaScript.h>
 
+#ifndef WIN32
+#define sprintf_s snprintf
+#endif
+
 namespace DeltaScript {
     Variable::Variable() {
         ref_count_ = 0;
