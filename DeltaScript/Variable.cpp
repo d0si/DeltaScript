@@ -45,6 +45,9 @@ namespace DeltaScript {
     }
 
     const std::string& Variable::get_string() {
+        static const std::string null_str = "null";
+        static const std::string undefined_str = "undefined";
+
         if (is_int()) {
             return std::to_string(int_data_);
         }
@@ -52,10 +55,10 @@ namespace DeltaScript {
             return std::to_string(double_data_);
         }
         else if (is_null()) {
-            return "null";
+            return null_str;
         }
         else if (is_undefined()) {
-            return "undefined";
+            return undefined_str;
         }
 
         return str_data_;

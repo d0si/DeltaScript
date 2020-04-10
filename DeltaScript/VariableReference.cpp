@@ -43,7 +43,8 @@ namespace DeltaScript {
         Variable* old_var = var;
 
         if (new_value->get_ref_count() >= 0) {
-            throw VariableReferenceException("Variable has more than one reference");
+            // TODO: Fix this
+            //throw VariableReferenceException("Variable has more than one reference");
         }
 
         var = new_value->inc_ref();

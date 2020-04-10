@@ -422,7 +422,6 @@ namespace DeltaScript {
 
     VariableReference* Context::process_condition(bool& can_execute) {
         VariableReference* a = process_shift(can_execute);
-        VariableReference* b;
 
         while (lex_->c_token_kind == TokenKind::EQUAL_P || lex_->c_token_kind == TokenKind::NEQUAL_P
             || lex_->c_token_kind == TokenKind::STRICT_EQUAL_P || lex_->c_token_kind == TokenKind::STRICT_NEQUAL_P
@@ -431,7 +430,7 @@ namespace DeltaScript {
             TokenKind operation = lex_->c_token_kind;
             lex_->parse_next_token();
 
-            b = process_shift(can_execute);
+            VariableReference* b = process_shift(can_execute);
 
             if (can_execute) {
                 Variable* result = a->var->execute_math_operation(b->var, operation);
