@@ -44,10 +44,7 @@ namespace DeltaScript {
         set_double(value);
     }
 
-    const std::string& Variable::get_string() {
-        static const std::string null_str = "null";
-        static const std::string undefined_str = "undefined";
-
+    std::string Variable::get_string() {
         if (is_int()) {
             return std::to_string(int_data_);
         }
@@ -55,10 +52,10 @@ namespace DeltaScript {
             return std::to_string(double_data_);
         }
         else if (is_null()) {
-            return null_str;
+            return "null";
         }
         else if (is_undefined()) {
-            return undefined_str;
+            return "undefined";
         }
 
         return str_data_;
@@ -176,6 +173,9 @@ namespace DeltaScript {
     }
 
     VariableReference* Variable::find_child(const std::string& child_name) {
+        static int i = 0;
+        ++i;
+
         auto c = children_.find(child_name);
 
         if (c != children_.end())

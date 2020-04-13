@@ -229,7 +229,7 @@ namespace DeltaScript {
         Variable(int value);
         Variable(double value);
 
-        const std::string& get_string();
+        std::string get_string();
         bool get_bool();
         int get_int();
         double get_double();
