@@ -1,4 +1,6 @@
 #include <DeltaScript/DeltaScript.h>
+#include <sstream>
+#include <nlohmann/json.hpp>
 
 #ifndef WIN32
 #define sprintf_s snprintf
@@ -44,7 +46,7 @@ namespace DeltaScript {
         set_double(value);
     }
 
-    std::string Variable::get_string() {
+    std::string Variable::get_string() const {
         if (is_int()) {
             return std::to_string(int_data_);
         }
@@ -57,15 +59,18 @@ namespace DeltaScript {
         else if (is_undefined()) {
             return "undefined";
         }
+        else if (is_object() || is_array()) {
+            return to_json();
+        }
 
         return str_data_;
     }
 
-    bool Variable::get_bool() {
+    bool Variable::get_bool() const {
         return get_int() != 0;
     }
 
-    int Variable::get_int() {
+    int Variable::get_int() const {
         if (is_int())
             return int_data_;
 
@@ -78,7 +83,7 @@ namespace DeltaScript {
         return 0;
     }
 
-    double Variable::get_double() {
+    double Variable::get_double() const {
         if (is_double())
             return double_data_;
 
@@ -172,7 +177,7 @@ namespace DeltaScript {
         return children_.empty();
     }
 
-    VariableReference* Variable::find_child(const std::string& child_name) {
+    VariableReference* Variable::find_child(const std::string& child_name) const {
         static int i = 0;
         ++i;
 
@@ -291,7 +296,7 @@ namespace DeltaScript {
         last_child_ = nullptr;
     }
 
-    Variable* Variable::get_array_val_at_index(int index) {
+    Variable* Variable::get_array_val_at_index(int index) const {
         std::string str_index = std::to_string(index);
 
         VariableReference* ref = find_child(str_index);
@@ -325,7 +330,7 @@ namespace DeltaScript {
         }
     }
 
-    int Variable::get_array_size() {
+    int Variable::get_array_size() const {
         if (!is_array())
             return 0;
 
@@ -345,8 +350,12 @@ namespace DeltaScript {
         return highest + 1;
     }
 
-    int Variable::get_children_count() {
+    int Variable::get_children_count() const {
         return children_.size();
+    }
+    
+    std::unordered_map<std::string, VariableReference*> Variable::get_children() const {
+        return children_;
     }
 
     Variable* Variable::execute_math_operation(Variable* second, TokenKind operation) {
@@ -568,7 +577,7 @@ namespace DeltaScript {
         }
     }
 
-    int Variable::get_ref_count() {
+    int Variable::get_ref_count() const {
         return ref_count_;
     }
 
@@ -576,12 +585,117 @@ namespace DeltaScript {
         ++execution_count_;
     }
 
-    int Variable::get_execution_count() {
+    int Variable::get_execution_count() const {
         return execution_count_;
     }
 
     void Variable::set_native_callback(NativeCallback callback, void* data) {
         native_callback_ = callback;
         native_callback_data_ = data;
+    }
+
+    nlohmann::json object_to_json(const Variable* var);
+    nlohmann::json array_to_json(const Variable* var);
+    nlohmann::json variable_to_json(const Variable* var);
+
+    nlohmann::json object_to_json(const Variable* var) {
+        nlohmann::json json_value = nlohmann::json::object();
+
+        for (auto& it : var->get_children()) {
+            json_value[it.first] = variable_to_json(it.second->var);
+        }
+
+        return json_value;
+    }
+
+    nlohmann::json array_to_json(const Variable* var) {
+        nlohmann::json json_value = nlohmann::json::array();
+
+        for (auto& it : var->get_children()) {
+            json_value[it.first] = variable_to_json(it.second->var);
+        }
+
+        return json_value;
+    }
+
+    nlohmann::json variable_to_json(const Variable* var) {
+        if (var->is_object()) {
+            return object_to_json(var);
+        }
+        else if (var->is_array()) {
+            return array_to_json(var);
+        }
+        else if (var->is_int()) {
+            return nlohmann::json(var->get_int());
+        }
+        else if (var->is_double()) {
+            return nlohmann::json(var->get_double());
+        }
+        else if (var->is_string()) {
+            return nlohmann::json(var->get_string());
+        }
+        else {
+            return nlohmann::json(nullptr);
+        }
+    }
+
+    std::string Variable::to_json() const {
+        return variable_to_json(this).dump();
+    }
+
+    Variable* object_from_json(nlohmann::json json_value);
+    Variable* array_from_json(nlohmann::json json_value);
+    Variable* variable_from_json(nlohmann::json json_value);
+
+    Variable* object_from_json(nlohmann::json json_value) {
+        Variable* value = new Variable();
+
+        for (auto it = json_value.begin(); it != json_value.end(); ++it) {
+            value->add_child(it.key(), variable_from_json(*it));
+        }
+
+        return value;
+    }
+
+    Variable* array_from_json(nlohmann::json json_value) {
+        Variable* value = new Variable();
+        value->set_as_array();
+        int i = 0;
+
+        for (auto it = json_value.begin(); it != json_value.end(); ++it) {
+            value->set_array_val_at_index(i, variable_from_json(*it));
+
+            ++i;
+        }
+
+        return value;
+    }
+
+    Variable* variable_from_json(nlohmann::json json_value) {
+        if (json_value.is_object()) {
+            return object_from_json(json_value);
+        }
+        else if (json_value.is_array()) {
+            return array_from_json(json_value);
+        }
+        else if (json_value.is_number_integer()) {
+            return new Variable(json_value.get<int>());
+        }
+        else if (json_value.is_number()) {
+            return new Variable(json_value.get<double>());
+        }
+        else if (json_value.is_boolean()) {
+            return new Variable(json_value.get<bool>());
+        }
+        else if (json_value.is_string()) {
+            return new Variable(json_value.get<std::string>());
+        }
+        else {
+            return new Variable();
+        }
+    }
+
+    Variable* Variable::from_json(const std::string& string_value) {
+        return variable_from_json(nlohmann::json::parse(string_value));
     }
 }  // namespace DeltaScript

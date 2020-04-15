@@ -28,6 +28,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER DeltaScript.h)
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/nlohmann/json/include
 )
 
 add_subdirectory(examples)

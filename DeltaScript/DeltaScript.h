@@ -229,10 +229,10 @@ namespace DeltaScript {
         Variable(int value);
         Variable(double value);
 
-        std::string get_string();
-        bool get_bool();
-        int get_int();
-        double get_double();
+        std::string get_string() const;
+        bool get_bool() const;
+        int get_int() const;
+        double get_double() const;
         void set_string(const std::string& value);
         void set_int(int value);
         void set_double(double value);
@@ -251,17 +251,18 @@ namespace DeltaScript {
         bool is_null() const;
         bool is_basic() const;
 
-        VariableReference* find_child(const std::string& child_name);
+        VariableReference* find_child(const std::string& child_name) const;
         VariableReference* find_child_or_create(const std::string& child_name, unsigned int var_flags = VariableFlags::UNDEFINED);
         VariableReference* find_child_or_create_by_path(const std::string& path);
         VariableReference* add_child(const std::string& child_name, Variable* child = nullptr);
         void remove_child(const std::string& child_name, Variable* child, bool throw_if_not_found = false);
         void remove_reference(VariableReference* ref);
         void remove_all_children();
-        Variable* get_array_val_at_index(int index);
+        Variable* get_array_val_at_index(int index) const;
         void set_array_val_at_index(int index, Variable* value);
-        int get_array_size();
-        int get_children_count();
+        int get_array_size() const;
+        int get_children_count() const;
+        std::unordered_map<std::string, VariableReference*> get_children() const;
 
         Variable* execute_math_operation(Variable* second, TokenKind operation);
 
@@ -271,11 +272,14 @@ namespace DeltaScript {
 
         Variable* inc_ref();
         void unref();
-        int get_ref_count();
+        int get_ref_count() const;
 
         void increase_execution_count();
-        int get_execution_count();
+        int get_execution_count() const;
         void set_native_callback(NativeCallback callback, void* data);
+
+        std::string to_json() const;
+        static Variable* from_json(const std::string& string_value);
 
         friend class Context;
     };

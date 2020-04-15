@@ -5,6 +5,17 @@ namespace DeltaScript {
     Context::Context() {
         lex_ = nullptr;
         root_ = (new Variable("", Variable::VariableFlags::OBJECT))->inc_ref();
+
+        add_native_function("function JSON.stringify(value)", [](Variable* var, void* data) {
+            var->find_child("return")->var->set_string(
+                var->find_child("value")->var->to_json()
+            );
+
+            }, nullptr);
+        add_native_function("function JSON.parse(value)", [](Variable* var, void* data) {
+            var->find_child("return")->var = Variable::from_json(var->find_child("value")->var->get_string());
+
+            }, nullptr);
     }
 
     Context::~Context() {
@@ -15,10 +26,10 @@ namespace DeltaScript {
     void Context::execute(const std::string& script) {
         Lexer* old_lex = lex_;
         std::vector<Variable*> old_scopes = scopes_;
-
-        lex_ = new Lexer(script);
         scopes_.clear();
         scopes_.push_back(root_);
+
+        lex_ = new Lexer(script);
 
         try {
             bool can_execute = true;
