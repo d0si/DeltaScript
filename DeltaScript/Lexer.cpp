@@ -145,11 +145,11 @@ namespace DeltaScript {
     Lexer* Lexer::get_sub_lex(int start_position) {
         int last_char_index = p_token_end + 1;
 
-        if (last_char_index < source_end_) {
+        if (last_char_index < (int)source_end_) {
             return new Lexer(this, start_position, last_char_index);
         }
         else {
-            return new Lexer(this, start_position, source_end_);
+            return new Lexer(this, start_position, (int)source_end_);
         }
     }
 

@@ -351,7 +351,7 @@ namespace DeltaScript {
     }
 
     int Variable::get_children_count() const {
-        return children_.size();
+        return (int)children_.size();
     }
     
     std::unordered_map<std::string, VariableReference*> Variable::get_children() const {

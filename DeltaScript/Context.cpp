@@ -859,7 +859,7 @@ namespace DeltaScript {
     }
 
     VariableReference* Context::find_var_in_scopes(const std::string& child_name) {
-        for (int i = scopes_.size() - 1; i >= 0; --i) {
+        for (int i = (int)scopes_.size() - 1; i >= 0; --i) {
             VariableReference* ref = scopes_[i]->find_child(child_name);
 
             if (ref)
